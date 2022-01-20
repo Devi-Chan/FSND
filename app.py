@@ -1,10 +1,8 @@
 
 # Imports
 
-import json
 import logging
 from logging import Formatter, FileHandler
-
 import babel
 import dateutil.parser
 from flask import Flask, render_template, request, flash, redirect, url_for, abort
@@ -115,7 +113,9 @@ def venues():
     for area in areas:
 
         # Querying venues and filter them based on area (city, venue)
-        result = Venue.query.filter(Venue.state == area.state).filter(Venue.city == area.city).all()
+
+        result = Venue.query.filter(Venue.state == area.state).filter(Venue.city == area.city
+        ).all()
 
         venue_data = []
 
@@ -124,7 +124,11 @@ def venues():
             venue_data.append({
                 'id': venue.id,
                 'name': venue.name,
-                'num_upcoming_shows': len(db.session.query(Show).filter(Show.start_time > datetime.now()).all())
+                'num_upcoming_shows': len(db.session.query(
+                  Show
+                    ).filter(
+                    Show.start_time > datetime.now()
+                    ).all())
             })
 
             response.append({
@@ -178,7 +182,9 @@ def create_venue_submission():
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
     try:
-        Venue.query.filter(Venue.id == venue_id).delete()
+        Venue.query.filter(Venue.id == venue_id
+        ).delete()
+
         db.session.commit()
     except:
         db.session.rollback()
@@ -286,7 +292,10 @@ def show_artist(artist_id):
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
     form = ArtistForm()
-    artist = Artist.query.filter(Artist.id == artist_id).first()
+    
+    artist = Artist.query.filter(Artist.id == artist_id
+    ).first()
+
     return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
@@ -329,7 +338,8 @@ def edit_artist_submission(artist_id):
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
       
-    venue = Venue.query.filter(Venue.id == venue_id).first()
+    venue = Venue.query.filter(Venue.id == venue_id
+    ).first()
 
     past = db.session.query(
             Show
@@ -407,8 +417,12 @@ def show_venue(venue_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
+
     form = VenueForm()
-    venue = Venue.query.filter(Venue.id == venue_id).first()
+
+    venue = Venue.query.filter(Venue.id == venue_id
+    ).first()
+
     return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
@@ -451,14 +465,20 @@ def edit_venue_submission(venue_id):
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
     search_term = request.form.get('search_term', '')
-    result = db.session.query(Venue).filter(Venue.name.ilike(f'%{search_term}%')).all()
+    
+    result = db.session.query(
+      Venue
+      ).filter(
+        Venue.name.ilike(f'{search_term}')
+      ).all()
+
     count = len(result)
     response = {
         "count": count,
         "data": result
     }
     return render_template('pages/search_venues.html', results=response,
-                           search_term=request.form.get('search_term', ''))
+    search_term=request.form.get('search_term', ''))
 
 
 @app.route('/artists/create', methods=['GET'])
@@ -468,46 +488,51 @@ def create_artist_form():
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-    try:
-        artist = Artist(
-            name=request.form.get('name'),
-            city=request.form.get('city'),
-            state=request.form.get('state'),
-            phone=request.form.get('phone'),
-            genres=request.form.get('genres'),
-            image_link=request.form.get('image_link'),
-            facebook_link=request.form.get('facebook_link'),
-            seeking_venue=bool(request.form.get('seeking_venue')=='y'),
-            website=request.form.get('website'),
-            seeking_description=request.form.get('seeking_description')
-        )
-        db.session.add(artist)
-        db.session.commit()
-        flash('Artist ' + request.form['name'] + ' was successfully listed!')
-    except Exception as ex:
-        print(ex)
-        flash('An error occurred. Artist ' + request.form['name'] + ' could not be added')
-        db.session.rollback()
-    finally:
+  try:
+    artist = Artist(
+      name=request.form.get('name'),
+      city=request.form.get('city'),
+      state=request.form.get('state'),
+      phone=request.form.get('phone'),
+      genres=request.form.get('genres'),
+      image_link=request.form.get('image_link'),
+      facebook_link=request.form.get('facebook_link'),
+      seeking_venue=bool(request.form.get('seeking_venue')=='y'),
+      website=request.form.get('website'),
+      seeking_description=request.form.get('seeking_description')
+    )
+    db.session.add(artist)
+    db.session.commit()
+    flash(f'Artist {artist.name} was successfully listed!')
+  except Exception as ex:
+    print(ex)
+    flash(f"An error occurred! {artist.name}'s artist page failed to be added")
+    db.session.rollback()
+  finally:
         db.session.close()
-    return render_template('pages/home.html')
+  return render_template('pages/home.html')
 
 
 
 @app.route('/shows')
 def shows():
-    data = Show.query.join(Artist, Artist.id == Show.artist_id).join(Venue, Venue.id == Show.venue_id).all()
+    data = Show.query.join(
+      Artist, 
+      Artist.id == Show.artist_id
+      ).join(
+        Venue, Venue.id == Show.venue_id
+      ).all()
 
     response = []
     for show in data:
-        response.append({
-            "venue_id": show.venue_id,
-            "venue_name": show.venue.name,
-            "artist_id": show.artist_id,
-            "artist_name": show.artist.name,
-            "artist_image_link": show.artist.image_link,
-            "start_time": str(show.start_time)
-        })
+      response.append({
+        "venue_id": show.venue_id,
+        "venue_name": show.venue.name,
+        "artist_id": show.artist_id,
+        "artist_name": show.artist.name,
+        "artist_image_link": show.artist.image_link,
+        "start_time": str(show.start_time)
+      })
     return render_template('pages/shows.html', shows=response)
 
 @app.route('/shows/create')
@@ -529,7 +554,7 @@ def create_show_submission():
         flash('Show was successfully added!')
     except Exception as ex:
         print(ex)
-        flash('An error occurred. Show could not be added')
+        flash('An error occurred! Show could not be added')
         db.session.rollback()
     finally:
         db.session.close()
@@ -555,7 +580,7 @@ if not app.debug:
     file_handler.setLevel(logging.INFO)
     app.logger.addHandler(file_handler)
     app.logger.info('errors')
-    
+
 
 # Launch.
 
