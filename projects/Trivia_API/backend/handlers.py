@@ -3,7 +3,7 @@ class err:
     def NotFound(target,comment:str):
         if len(target)==0:
             if comment:
-                        flash(comment)
+                flash(comment)
             abort(404)
 
     def NotIn(items:list,group,comment:str):

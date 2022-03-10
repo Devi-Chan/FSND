@@ -2,23 +2,13 @@ import os
 import sys
 import random
 
-from models import *
+from models import Question, Category, setup_db
 from handlers import err
 
 from flask import Flask, after_this_request, request, abort, jsonify,flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
-
-
-
-
-##
-
-
-     
-        
-##
 
 
 QUESTIONS_PER_PAGE = 10
@@ -60,7 +50,7 @@ def create_app(test_config=None):
       Category.type
       ).all()
 
-    err.NotFound(categories)
+    err.NotFound(categories, 'Category not found!')
 
     return jsonify({
       'success':True,
@@ -99,7 +89,7 @@ def create_app(test_config=None):
     selection=Question.query.all()
     current_questions = paginate_questions(request,selection)
     categories=Category.query.order_by(Category.type).all()
-    err.NotFound(current_questions)
+    err.NotFound(current_questions, 'Questions not found!')
     try:
         # get categories, add to dict
         categories = Category.query.all()
@@ -135,7 +125,7 @@ def create_app(test_config=None):
     try:
         question = Question.query.filter_by(id=id).one_or_none()
 
-        err.NotFound(question)
+        err.NotFound(question, 'question does not exist or was not found!')
 
         question.delete()
 
@@ -164,7 +154,7 @@ def create_app(test_config=None):
     # load request body and data
     body = request.get_json()
 
-    err.NotIn(['question','answer','difficulty','category'],body)
+    err.NotIn(['question','answer','difficulty','category'],body, 'Structural Q&A error!')
 
     new_question = body.get('question')
     new_answer = body.get('answer')
@@ -266,7 +256,7 @@ def create_app(test_config=None):
 
           body = request.get_json()
 
-          err.NotIn(['quiz_category','previous_questions'],body)
+          err.NotIn(['quiz_category','previous_questions'],body,'Invalid quiz category/question')
 
           category = body.get('quiz_category')
           previous_questions = body.get('previous_questions')
@@ -297,6 +287,7 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
-  
-  return app
+  if __name__ == "__main__":
+    return app
 
+  
